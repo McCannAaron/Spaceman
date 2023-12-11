@@ -10,12 +10,18 @@ import java.security.NoSuchAlgorithmException;
 public class Spaceman {
     public static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-    public static void main(String[] args) throws IOException {
-        System.out.println("Please enter a string using only the alphabet and numbers: ");
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+        System.out.print("Please enter a string using only the alphabet and numbers: ");
         String sentence = br.readLine();
         String conversion = conversionAlphabet(sentence);
-        System.out.println("Your string: " + sentence);
-        System.out.println("Converted string: " + conversion);
+        System.out.println("\n" + "Your string: " + sentence);
+        System.out.println("\n" + "Converted string: " + conversion);
+        System.out.println("\n" + "SHA-256 Hash: " + toHexString(getSHA(conversion)));
+        String encryptedText = caesar(sentence, 5);
+        System.out.println("\n" + "Caesar Cipher string: " + encryptedText);
+        System.out.println("\n" + "Brute force shifts plus new string: ");
+        bruteForceDecrypt(sentence);
+
     }
 
     public static String conversionAlphabet(String text) {
@@ -44,6 +50,62 @@ public class Spaceman {
             }
         }
         return conversion.toString().trim();
+    }
+
+    public static byte[] getSHA(String text) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+        return md.digest(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String toHexString(byte[] hash) {
+        BigInteger number = new BigInteger(1, hash);
+
+        StringBuilder hexString = new StringBuilder(number.toString(16));
+
+        while (hexString.length() < 64) {
+            hexString.insert(0, '0');
+        }
+        return hexString.toString();
+    }
+
+    public static String caesar(String plaintext, int shift) {
+
+        StringBuilder encryptedText = new StringBuilder();
+
+        for (char character : plaintext.toCharArray()) {
+            if (Character.isLetter(character)) {
+                char base = Character.isLowerCase(character) ? 'a' : 'A';
+                int originalAlphabetPosition = character - base;
+                int newAlphabetPosition = (originalAlphabetPosition + shift) % 26;
+                char newCharacter = (char) (base + newAlphabetPosition);
+                encryptedText.append(newCharacter);
+            } else {
+                encryptedText.append(character);
+            }
+        }
+        return encryptedText.toString();
+    }
+
+    public static void bruteForceDecrypt(String encryptedText) {
+        for (int shift = 0; shift < 26; shift++) {
+            StringBuilder decryptedText = new StringBuilder();
+
+            for (char character : encryptedText.toCharArray()) {
+                if (character != ' ' && character != '!' && character != ',') {
+                    int originalPosition = character - 'A';
+                    int newPosition = (originalPosition - shift % 26);
+                    newPosition = newPosition < 0 ? newPosition + 26 : newPosition;
+                    char newCharacter = (char) ('A' + newPosition);
+                    decryptedText.append(newCharacter);
+                } else {
+                    decryptedText.append(character);
+                }
+            }
+
+            System.out.println(shift + ": " + decryptedText);
+        }
+
     }
 
 }
